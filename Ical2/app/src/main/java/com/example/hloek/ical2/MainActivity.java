@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private String lectureUsername;
     private String filename;
 
+    // Mappen hvor timeplanene blir lagret
     private final String LECTURE_FILE_PATH = "/lecture";
 
     private List<VEvent> events;
@@ -71,10 +72,11 @@ public class MainActivity extends AppCompatActivity {
     public void onClickNextEvent(View view) {
         generateLecturePlan();
         countDownToNextStory();
-        getTimeTableFromEventAndSetNextEventTime();
-        getMillisecondsForNextEvent();
+        //getTimeTableFromEventAndSetNextEventTime();
+        //getMillisecondsForNextEvent();
     }
 
+    // Henter ned timeplanen fra 1024 og lager en sortert liste over alle eventene i kalenderen.
     public void generateLecturePlan(){
         setLectureUsername("test");
         generateFileName();
@@ -82,9 +84,8 @@ public class MainActivity extends AppCompatActivity {
         file_download("https://ntnu.1024.no/2017/var/" + getLectureUsername() + "/ical/forelesninger/");
 
         /*
-        Hjelpe textview for utvikling
+        Hjelpe-textview for utvikling
          */
-
         TextView tv = (TextView) findViewById(R.id.displayNextEvent);
 
         try {
@@ -117,7 +118,9 @@ public class MainActivity extends AppCompatActivity {
             for(int i = 0; i < events.size(); i++){
                 getTimeTableFromEvent(i);
 
+                // Finner første forelesning for idag
                 if(getEventMonth() == getMonth() && getEventDay() == getToday()){
+                    // Her printers det bare ut noe, men her kan det endres til
                     tv.setText(events.get(i).getSummary().getValue() + ": " + getEventHour() + ":" + getEventMin() + "\n" + "Er personen i tide: " + isPersonOnTime() +
                     "\n" + "Username: " + getLectureUsername());
                     break;
@@ -126,9 +129,13 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {e.printStackTrace();}
     }
 
+    /*
+    Skal hente ut første event imorgen og sette tiden det gjenstår før den inntreffer- ikke ferdig
+     */
+
     public void getTimeTableFromEventAndSetNextEventTime(){
         for (int k = 0; k < events.size(); k++){
-            String eventDate = concertStringMonthToIntMonth(k);
+            String eventDate = convertStringMonthToIntMonth(k);
             setNextEventMonth(Integer.valueOf(eventDate.substring(0,2)));
             setNextEventDay(Integer.valueOf(eventDate.substring(3,5)));
             setNextEventHour(Integer.valueOf(eventDate.substring(6,8)));
@@ -149,6 +156,10 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    /*
+    Gir ut antall millisekunder til neste gang du får et kapittel
+     */
     public int getMillisecondsForNextEvent(){
         Date d = new Date();
         long t = d.getTime() - nextEventTimeStamp.getValue().getTime();
@@ -157,8 +168,12 @@ public class MainActivity extends AppCompatActivity {
         return 0;
     }
 
+
+    /*
+    Henter ut informasjon om eventet i kalenderen
+     */
     public void getTimeTableFromEvent(int i){
-        String eventDate = concertStringMonthToIntMonth(i);
+        String eventDate = convertStringMonthToIntMonth(i);
 
         setEventMonth(Integer.valueOf(eventDate.substring(0,2)));
         setEventDay(Integer.valueOf(eventDate.substring(3,5)));
@@ -168,7 +183,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public String concertStringMonthToIntMonth(int i){
+
+    /*
+    Endrer formatet til stringen fra kalender filen, den gir ut dato som String og ikke Int
+     */
+    public String convertStringMonthToIntMonth(int i){
         return events.get(i).getDateStart().getValue().toString().substring(4, 19)
                 .replace("Jan", "01").replace("Feb", "02").replace("Mar", "03")
                 .replace("Apr", "04").replace("Mai", "05").replace("Jun", "06")
@@ -176,6 +195,9 @@ public class MainActivity extends AppCompatActivity {
                 .replace("Oct", "10").replace("Nov", "11").replace("Des", "12");
     }
 
+    /*
+    Countdown til neste hisotire - ikke ferdig
+     */
     public void countDownToNextStory(){
 
 
@@ -250,9 +272,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /*
+    Funksjonen som gir true eller false avhengig av om personen er i tide eller ikke, må kjøreres etter at man har hentet ned kalenderen
+     */
     public boolean isPersonOnTime(){
         return ((getEventHour() == getHoursPlussGMT()) && (getEventMin() >= 0 && getEventMin() <=15));
     }
+
+    /*
+    Getters and setters
+     */
 
     public int getHoursPlussGMT(){
         return datemaker.getHours();
